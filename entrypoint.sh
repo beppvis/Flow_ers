@@ -6,37 +6,50 @@ echo "🚀 Starting ANOKHA Logistics Tech Stack..."
 # Start database services first
 echo "📦 Starting database services..."
 
-# Start MariaDB
+# Initialize and start MariaDB
 if [ ! -d /var/lib/mysql/mysql ]; then
     echo "Initializing MariaDB..."
-    mysql_install_db --user=mysql --datadir=/var/lib/mysql
+    mysql_install_db --user=mysql --datadir=/var/lib/mysql --auth-root-authentication-method=normal
 fi
 
-# Start PostgreSQL
+# Start MariaDB service
+service mariadb start || true
+
+# Wait for MariaDB to be ready
+echo "⏳ Waiting for MariaDB to start..."
+for i in {1..30}; do
+    if mysql -u root -e "SELECT 1" &>/dev/null 2>&1; then
+        break
+    fi
+    echo "Waiting for MariaDB... ($i/30)"
+    sleep 1
+done
+
+# Setup MariaDB database and user
+echo "Setting up MariaDB database..."
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS frappe;" 2>/dev/null || true
+mysql -u root -e "CREATE USER IF NOT EXISTS 'frappe'@'localhost' IDENTIFIED BY 'frappe';" 2>/dev/null || true
+mysql -u root -e "GRANT ALL PRIVILEGES ON frappe.* TO 'frappe'@'localhost';" 2>/dev/null || true
+mysql -u root -e "FLUSH PRIVILEGES;" 2>/dev/null || true
+
+# Initialize and start PostgreSQL
 if [ ! -d /var/lib/postgresql/data ]; then
     echo "Initializing PostgreSQL..."
     mkdir -p /var/lib/postgresql/data
     chown -R postgres:postgres /var/lib/postgresql/data
     # Find PostgreSQL version
-    PG_VERSION=$(ls /usr/lib/postgresql/ | head -n1)
-    sudo -u postgres /usr/lib/postgresql/$PG_VERSION/bin/initdb -D /var/lib/postgresql/data
+    PG_VERSION=$(ls /usr/lib/postgresql/ 2>/dev/null | head -n1)
+    if [ -n "$PG_VERSION" ]; then
+        sudo -u postgres /usr/lib/postgresql/$PG_VERSION/bin/initdb -D /var/lib/postgresql/data
+    fi
 fi
 
-# Wait for databases to be ready
-echo "⏳ Waiting for databases to initialize..."
-sleep 5
-
-# Ensure databases exist
-service mysql start || true
+# Start PostgreSQL service
 service postgresql start || true
 
+# Wait for PostgreSQL to be ready
+echo "⏳ Waiting for PostgreSQL to start..."
 sleep 3
-
-# Setup MariaDB
-mysql -e "CREATE DATABASE IF NOT EXISTS frappe;" 2>/dev/null || true
-mysql -e "CREATE USER IF NOT EXISTS 'frappe'@'localhost' IDENTIFIED BY 'frappe';" 2>/dev/null || true
-mysql -e "GRANT ALL PRIVILEGES ON frappe.* TO 'frappe'@'localhost';" 2>/dev/null || true
-mysql -e "FLUSH PRIVILEGES;" 2>/dev/null || true
 
 # Setup PostgreSQL (wait for it to be ready)
 for i in {1..30}; do

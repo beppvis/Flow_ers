@@ -42,15 +42,10 @@ RUN npm install -g yarn
 # Install Frappe bench CLI
 RUN pip3 install frappe-bench
 
-# Configure MariaDB
-RUN service mysql start && \
-    mysql -e "CREATE DATABASE IF NOT EXISTS frappe;" && \
-    mysql -e "CREATE USER IF NOT EXISTS 'frappe'@'localhost' IDENTIFIED BY 'frappe';" && \
-    mysql -e "GRANT ALL PRIVILEGES ON frappe.* TO 'frappe'@'localhost';" && \
-    mysql -e "FLUSH PRIVILEGES;"
-
-# Configure PostgreSQL (will be initialized in entrypoint)
-RUN mkdir -p /var/lib/postgresql/data && \
+# Create directories for databases (will be initialized in entrypoint)
+RUN mkdir -p /var/lib/mysql && \
+    chown -R mysql:mysql /var/lib/mysql && \
+    mkdir -p /var/lib/postgresql/data && \
     chown -R postgres:postgres /var/lib/postgresql
 
 # Create frappe user
@@ -92,7 +87,8 @@ RUN mkdir -p /var/log/supervisor \
     /home/frappe/frappe-bench \
     && chown -R frappe:frappe /home/frappe \
     && chown -R mysql:mysql /var/lib/mysql \
-    && chown -R postgres:postgres /var/lib/postgresql
+    && chown -R postgres:postgres /var/lib/postgresql \
+    && chmod 755 /var/run/mysqld
 
 # Expose ports
 EXPOSE 80 3000 8000 9000 3306 5432 6379
