@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+frappe-client
+pandas
+openpyxl
+pdf2image
+pytesseract
+pypdf
+python-dotenv
+requests
+google-generativeai
