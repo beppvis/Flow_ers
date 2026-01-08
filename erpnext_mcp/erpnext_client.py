@@ -38,11 +38,60 @@ class ERPNextClient:
                     # Not found or error, proceed to create
                     pass
 
+            # Ensure Item Group exists
+            if "item_group" in item_data and item_data["item_group"]:
+                self._ensure_item_group_exists(item_data["item_group"])
+            
+            # Ensure UOM exists
+            if "stock_uom" in item_data and item_data["stock_uom"]:
+                self._ensure_uom_exists(item_data["stock_uom"])
+
             item_data["doctype"] = "Item"
             doc = self.client.insert((item_data))
             return {"status": "success", "data": doc}
         except Exception as e:
             return {"status": "error", "message": str(e)}
+
+    def _ensure_item_group_exists(self, group_name):
+        doc = None
+        try:
+            doc = self.client.get_doc("Item Group", group_name)
+        except Exception:
+            pass
+
+        if not doc:
+            try:
+                print(f"Creating missing Item Group: {group_name}")
+                new_group = {
+                    "doctype": "Item Group",
+                    "item_group_name": group_name,
+                    "parent_item_group": "All Item Groups",
+                    "is_group": 0
+                }
+                return self.client.insert(new_group)
+            except Exception as e:
+                print(f"Failed to create Item Group {group_name}: {e}")
+                pass
+
+    def _ensure_uom_exists(self, uom_name):
+        doc = None
+        try:
+            doc = self.client.get_doc("UOM", uom_name)
+        except Exception:
+            pass
+
+        if not doc:
+            try:
+                print(f"Creating missing UOM: {uom_name}")
+                new_uom = {
+                    "doctype": "UOM",
+                    "uom_name": uom_name,
+                    "must_be_whole_number": 1 if uom_name in ['Nos', 'Box', 'Set'] else 0
+                }
+                return self.client.insert(new_uom)
+            except Exception as e:
+                print(f"Failed to create UOM {uom_name}: {e}")
+                pass
 
     def get_item(self, item_code):
         try:
