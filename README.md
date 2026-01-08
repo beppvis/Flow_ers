@@ -49,46 +49,33 @@ An automated quote processing system that:
 
 ```
 ┌─────────────────────────────────────────┐
-│         Frontend (React + Vite)        │
+│         React Frontend (Vite)          │
 │         Port: 5173                     │
-│         - File upload UI                │
-│         - Drag & drop interface         │
-│         - Client-side validation        │
+│         - Quote upload & review UI     │
+│         - Calls /api/parse & /api/insert│
 └──────────────┬──────────────────────────┘
-               │ HTTP POST /api/upload
+               │ HTTP /api/* (proxied)
                │
 ┌──────────────▼──────────────────────────┐
-│         Backend API (FastAPI)           │
-│         Port: 5000                      │
-│         - File storage                  │
-│         - Server-side validation        │
-│         - Rate limiting                 │
-│         - Triggers MCP processing       │
+│     MCP Agent (FastAPI, erpnext_mcp)   │
+│     Port: 8001 (host) → 8000 (container)│
+│     - OCR + parsing (PDF, Excel, images)│
+│     - Gemini AI extraction (optional)   │
+│     - /parse (extract items)            │
+│     - /insert (sync items to ERPNext)   │
 └──────────────┬──────────────────────────┘
-               │ HTTP POST /upload
+               │ HTTP REST (Frappe API)
                │
 ┌──────────────▼──────────────────────────┐
-│         MCP Agent (Python + FastAPI)   │
-│         Port: 8001                      │
-│         - OCR (Tesseract)               │
-│         - PDF text extraction           │
-│         - Excel parsing (pandas)        │
-│         - AI extraction (Gemini)        │
-│         - Data normalization            │
-└──────────────┬──────────────────────────┘
-               │ ERPNext API
-               │
-┌──────────────▼──────────────────────────┐
-│         ERPNext (Dockerized)            │
-│         Port: 8000                      │
-│         - Quote records                 │
-│         - Vendor management             │
-│         - Complete ERP system           │
+│       ERPNext Stack (frappe/erpnext)   │
+│       Port: 8080 (UI)                  │
+│       - Items, Quotations, Masters     │
+│       - Background jobs & scheduler    │
 └─────────────────────────────────────────┘
 
 Supporting Services:
 - MariaDB (ERPNext database)
-- Redis (ERPNext cache)
+- Redis (queue + cache)
 ```
 
 **Technology Stack:**
@@ -134,9 +121,9 @@ Supporting Services:
 
 - Docker and Docker Compose installed
 - At least 4GB RAM available
-- Ports 5000, 5173, 8000, 8001 available
+- Ports 5173, 8001, 8080 available
 
-### Quick Start
+### Quick Start (Local, via Docker Compose)
 
 1. **Clone the repository:**
    ```bash
@@ -150,10 +137,9 @@ Supporting Services:
    ```
 
 3. **Access the application:**
-   - **Frontend (Quote Upload UI):** http://localhost:5173
-   - **Backend API:** http://localhost:5000
-   - **MCP Agent API:** http://localhost:8001
-   - **ERPNext:** http://localhost:8000
+   - **React Frontend (Quote Upload UI):** http://localhost:5173
+   - **MCP Agent API (FastAPI):** http://localhost:8001 (Swagger at /docs)
+   - **ERPNext UI:** http://localhost:8080
 
 ### Detailed Setup
 
@@ -165,8 +151,10 @@ Create a `.env` file in the root directory for optional configuration:
 # Gemini AI (optional - falls back to naive parsing if not set)
 GEMINI_API_KEY=your_gemini_api_key
 
-# ERPNext Configuration (optional - uses defaults if not set)
-FRAPPE_URL=http://erpnext:8000
+# ERPNext Configuration (optional override)
+# By default docker-compose wires FRAPPE_URL=http://backend:8000 inside the network.
+# Only set these if you are pointing to a different ERPNext instance.
+FRAPPE_URL=http://backend:8000
 FRAPPE_API_KEY=your_api_key
 FRAPPE_API_SECRET=your_api_secret
 ```
@@ -193,11 +181,11 @@ docker-compose down -v
 # Check service status
 docker-compose ps
 
-# Test backend health
-curl http://localhost:5000/api/health
-
-# Test MCP agent
+# Test MCP agent (FastAPI)
 curl http://localhost:8001/docs
+
+# Test ERPNext UI (should return HTML)
+curl http://localhost:8080
 ```
 
 ### Usage
@@ -224,21 +212,23 @@ curl http://localhost:8001/docs
 
 **Services not starting:**
 ```bash
-# Check logs
+# Check logs for ERPNext core
 docker-compose logs backend
-docker-compose logs erpnext-mcp
 
-# Rebuild specific service
-docker-compose build backend
-docker-compose up backend
+# Check logs for MCP Agent
+docker-compose logs erpnext-mcp-backend
+
+# Rebuild specific services
+docker-compose build erpnext-mcp-backend
+docker-compose up erpnext-mcp-backend
 ```
 
 **Port conflicts:**
 - Change ports in `docker-compose.yml` if needed
 
 **ERPNext not accessible:**
-- Wait 2-3 minutes for ERPNext to fully initialize
-- Check ERPNext logs: `docker-compose logs erpnext`
+- Wait 2-3 minutes for ERPNext to fully initialize (site creation, migrations, etc.)
+- Check ERPNext logs: `docker-compose logs backend`
 
 **File upload fails:**
 - Check file size (max 10MB)
@@ -249,36 +239,41 @@ docker-compose up backend
 
 ```
 ANOKHA/
-├── client/                 # Frontend React application
+├── client/                 # React frontend (Vite) for quote upload & review
 │   ├── src/
-│   ├── Dockerfile
-│   └── nginx.conf
-├── backend/               # Backend FastAPI service
-│   ├── main.py
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── uploads/           # Uploaded files storage
-├── erpnext_mcp/          # MCP Agent for processing
+│   ├── Dockerfile          # Builds the frontend dev server (port 5173)
+├── erpnext_mcp/            # MCP Agent (FastAPI) for parsing & ERPNext sync
 │   ├── main.py
 │   ├── processor.py
 │   ├── erpnext_client.py
 │   ├── requirements.txt
-│   └── Dockerfile
-├── docker-compose.yml     # Service orchestration
-└── README.md             # This file
+│   └── Dockerfile          # Builds the MCP backend (port 8000 in container)
+├── dataset/                # Sample PDFs, images, and Excel quotes (demo only)
+├── docker-compose.yml      # Orchestrates ERPNext + MCP + Frontend
+└── README.md               # This file
 ```
 
 ## API Endpoints
 
-### Backend API (Port 5000)
+### MCP Agent API (Port 8001 → container 8000)
 
-- `GET /api/health` - Health check
-- `POST /api/upload` - Upload quote files (multipart/form-data)
+All endpoints are exposed by the `erpnext_mcp` FastAPI service and are typically called via the frontend using `/api/*` (Vite proxy).
 
-### MCP Agent API (Port 8001)
+- `POST /parse`
+  - **Description:** Upload one or more quote files (`quotes` field, `multipart/form-data`).
+  - **Behavior:** Runs OCR/parsing and returns a JSON list of extracted items. Does **not** write to ERPNext.
 
-- `POST /upload` - Process files and extract data
-- `GET /docs` - API documentation
+- `POST /insert`
+  - **Description:** Accepts a JSON list of items (same shape as `/parse` output).
+  - **Behavior:** Inserts/updates Items in ERPNext using the configured `FRAPPE_URL`.
+
+- `GET /docs`
+  - **Description:** Swagger UI for interactive testing of the MCP API.
+
+### ERPNext UI (Port 8080)
+
+- Web UI served by the `frappe/erpnext` image (proxied container `frontend` service).
+- Default site created as `frontend` with Administrator / admin (first run).
 
 ## Evaluation Criteria Alignment
 
