@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from processor import FileProcessor
 from erpnext_client import ERPNextClient
@@ -32,8 +33,6 @@ def get_erp_client():
     return erp_client
 
 
-from typing import List
-
 @app.post("/upload")
 async def upload_file(quotes: List[UploadFile] = File(...)):
     """
@@ -41,20 +40,22 @@ async def upload_file(quotes: List[UploadFile] = File(...)):
     The client sends files with the key 'quotes'.
     """
     processed_results = []
-    
+
     try:
         client = get_erp_client()
-        
+
         for file in quotes:
             try:
                 content = await file.read()
                 items = processor.process_file(content, file.filename)
-                
+
                 # Check for client availability for each file or once globally
                 if client:
                     for item in items:
-                        if "item_code" in item:
+                        print(item)
+                        if item["item_code"]:
                             res = client.create_item(item)
+                            print(res)
                             processed_results.append({
                                 "filename": file.filename,
                                 "item": item.get("item_code"),
@@ -64,22 +65,23 @@ async def upload_file(quotes: List[UploadFile] = File(...)):
                         else:
                             processed_results.append({
                                 "filename": file.filename,
-                                "item": "unknown", 
+                                "item": "unknown",
                                 "status": "skipped"
                             })
                 else:
                     processed_results.append({
                         "filename": file.filename,
-                        "status": "processed_locally_only", 
+                        "status": "processed_locally_only",
                         "items_count": len(items)
                     })
             except Exception as e:
                 print(f"Error processing {file.filename}: {e}")
-                processed_results.append({"filename": file.filename, "error": str(e)})
+                processed_results.append(
+                    {"filename": file.filename, "error": str(e)})
 
         # Return format expected by QuoteUploader.jsx: { success: true, message: "..." }
         return {
-            "success": True, 
+            "success": True,
             "message": f"Successfully processed {len(quotes)} files.",
             "details": processed_results
         }
