@@ -163,6 +163,7 @@ GEMINI_API_KEY=your_gemini_api_key
 FRAPPE_URL=http://backend:8081
 
 ```
+You should also place the same .env file inside erpnext_mcp .
 
 #### 2. Build and Run
 
