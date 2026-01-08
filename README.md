@@ -13,7 +13,7 @@ Logistics coordinators and procurement teams spend 1+ hours daily manually re-ty
 - Text files or WhatsApp messages
 
 This manual process is:
-- **Time-consuming:** 1+ hours per day per coordinator
+- **Time-consuming:** Over 40% of the day is consumed with doing repetitive tasks
 - **Error-prone:** Manual data entry leads to typos and missing information
 - **Inefficient:** Delays procurement decisions and quote comparisons
 - **Scalable bottleneck:** Cannot handle high quote volumes
@@ -50,7 +50,7 @@ An automated quote processing system that:
 ```
 ┌─────────────────────────────────────────┐
 │         Frontend (React + Vite)        │
-│         Port: 5173                      │
+│         Port: 5173                     │
 │         - File upload UI                │
 │         - Drag & drop interface         │
 │         - Client-side validation        │
@@ -68,22 +68,22 @@ An automated quote processing system that:
                │ HTTP POST /upload
                │
 ┌──────────────▼──────────────────────────┐
-│         MCP Agent (Python + FastAPI)    │
-│         Port: 8001                       │
-│         - OCR (Tesseract)                │
-│         - PDF text extraction            │
-│         - Excel parsing (pandas)         │
-│         - AI extraction (Gemini)          │
-│         - Data normalization             │
+│         MCP Agent (Python + FastAPI)   │
+│         Port: 8001                      │
+│         - OCR (Tesseract)               │
+│         - PDF text extraction           │
+│         - Excel parsing (pandas)        │
+│         - AI extraction (Gemini)        │
+│         - Data normalization            │
 └──────────────┬──────────────────────────┘
                │ ERPNext API
                │
 ┌──────────────▼──────────────────────────┐
 │         ERPNext (Dockerized)            │
-│         Port: 8000                       │
+│         Port: 8000                      │
 │         - Quote records                 │
-│         - Vendor management              │
-│         - Complete ERP system            │
+│         - Vendor management             │
+│         - Complete ERP system           │
 └─────────────────────────────────────────┘
 
 Supporting Services:
