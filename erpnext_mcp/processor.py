@@ -77,21 +77,29 @@ class FileProcessor:
 
         prompt = f"""
         You are an intelligent data extraction assistant for an ERP system.
-        Extract a list of Product Items from the following text.
+        
+        Step 1: Analyze the text to determine if it is a relevant business document (Invoice, Quote, Receipt, Purchase Order, or Product List/Catalog).
+        Step 2: If it is NOT relevant (e.g., a recipe, a poem, a legal contract, general news, or random text), return a JSON object indicating invalidity.
+        Step 3: If it IS relevant, extract a list of Product Items.
 
-        The Output must be a valid JSON list of objects.
+        Output must be a valid JSON object with the following structure:
+        {{
+            "is_valid_document": boolean,
+            "validation_reason": "string (Why is it valid or invalid?)",
+            "items": [
+                {{
+                    "item_code": "Concise, uppercase, slug-like code (e.g. 'WLESS-MOUSE')",
+                    "item_name": "Product Name",
+                    "description": "Full description",
+                    "item_group": "Inferred Category (e.g. Electronics, Packaging)",
+                    "stock_uom": "Unit (Nos, Kg, Box)",
+                    "standard_rate": 0.0
+                }}
+            ]
+        }}
+
         Do NOT write markdown code blocks. Just return the raw JSON.
-
-        Each object should attempt to have these fields:
-        - "item_code": Generate a concise, uppercase, slug-like code derived from the item name (e.g. for "Wireless Mouse" use "WLESS-MOUSE"). Do not use generic headers.
-        - "item_name": The name of the product.
-        - "description": Detailed description.
-        - "item_group": Infer a specific logical category based on the item description (e.g. "Electronics", "Packaging", "Services", "Raw Material").
-        - "stock_uom": Unit of measure (e.g., Nos, Kg, Box). Default to 'Nos'.
-        - "standard_rate": Price if available.
-
-        If the text contains no items, return an empty list [].
-
+        
         Text to process:
         \"\"\"
         {text[:10000]}
@@ -111,13 +119,23 @@ class FileProcessor:
             elif raw_json.startswith("```"):
                 raw_json = raw_json[3:-3]
 
-            items = json.loads(raw_json)
-            if isinstance(items, list):
-                return self._normalize_items(items)
-            else:
-                print("Gemini returned non-list JSON.")
-                return self._naive_parse(text)
+            result = json.loads(raw_json)
+            
+            # handle list or dict (legacy model might return list directly if prompt ignored)
+            if isinstance(result, list):
+                # Fallback implementation if model ignored structure
+                return self._normalize_items(result)
+            
+            if not result.get("is_valid_document", True):
+                reason = result.get("validation_reason", "Document does not appear to be a valid invoice or quote.")
+                raise ValueError(f"Invalid Document: {reason}")
+            
+            items = result.get("items", [])
+            return self._normalize_items(items)
 
+        except ValueError as ve:
+            # Re-raise validation errors
+            raise ve
         except Exception as e:
             print(f"Gemini processing error: {e}")
             return self._naive_parse(text)

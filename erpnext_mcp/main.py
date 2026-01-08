@@ -33,63 +33,72 @@ def get_erp_client():
     return erp_client
 
 
-@app.post("/upload")
-async def upload_file(quotes: List[UploadFile] = File(...)):
+@app.post("/parse")
+async def parse_files(quotes: List[UploadFile] = File(...)):
     """
-    Upload PDF or Excel files.
-    The client sends files with the key 'quotes'.
+    Parses uploaded files and returns stringified JSON data of items.
+    Does NOT insert into ERPNext.
     """
     processed_results = []
 
-    try:
-        client = get_erp_client()
+    # Use one processor instance
+    processor = FileProcessor()
 
-        for file in quotes:
-            try:
-                content = await file.read()
-                items = processor.process_file(content, file.filename)
+    for file in quotes:
+        try:
+            content = await file.read()
+            items = processor.process_file(content, file.filename)
 
-                # Check for client availability for each file or once globally
-                if client:
-                    for item in items:
-                        print(item)
-                        if item["item_code"]:
-                            res = client.create_item(item)
-                            print(res)
-                            processed_results.append({
-                                "filename": file.filename,
-                                "item": item.get("item_code"),
-                                "status": "success",
-                                "erp_response": res
-                            })
-                        else:
-                            processed_results.append({
-                                "filename": file.filename,
-                                "item": "unknown",
-                                "status": "skipped"
-                            })
-                else:
-                    processed_results.append({
-                        "filename": file.filename,
-                        "status": "processed_locally_only",
-                        "items_count": len(items)
-                    })
-            except Exception as e:
-                print(f"Error processing {file.filename}: {e}")
-                processed_results.append(
-                    {"filename": file.filename, "error": str(e)})
+            processed_results.extend(items)
 
-        # Return format expected by QuoteUploader.jsx: { success: true, message: "..." }
-        return {
-            "success": True,
-            "message": f"Successfully processed {len(quotes)} files.",
-            "details": processed_results
-        }
+        except ValueError as ve:
+            # Explicit validation error
+            raise HTTPException(status_code=400, detail=str(ve))
+        except Exception as e:
+            # We might want to return errors in a way the frontend can display,
+            # but for now let's just log it or include a placeholder error item if needed.
+            print(f"Error processing {file.filename}: {e}")
+            raise HTTPException(status_code=500, detail=f"Error processing {
+                                file.filename}: {e}")
 
-    except Exception as e:
-        print(f"Upload error: {e}")
-        # Return 500 but try to keep structure if possible, though FastAPI exception handler takes over
-        raise HTTPException(status_code=500, detail=str(e))
+    return {
+        "success": True,
+        "message": f"Successfully parsed {len(quotes)} files.",
+        "data": processed_results
+    }
+
+
+@app.post("/insert")
+async def insert_items(items: List[dict]):
+    """
+    Receives a list of item dictionaries and inserts them into ERPNext.
+    """
+    client = get_erp_client()
+    if not client:
+        raise HTTPException(
+            status_code=500, detail="ERPNext client not initialized")
+
+    results = []
+    for item in items:
+        try:
+            res = client.create_item(item)
+            results.append({
+                "item_code": item.get("item_code"),
+                "status": "success" if res and res.get("name") else "failed",
+                "message": res.get("message", "Item created successfully") if res and res.get("name") else res.get("exception", "Unknown error during creation")
+            })
+        except Exception as e:
+            results.append({
+                "item_code": item.get("item_code"),
+                "status": "failed",
+                "message": str(e)
+            })
+
+    return {
+        "success": True,
+        "message": "Insertion complete",
+        "results": results
+    }
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
