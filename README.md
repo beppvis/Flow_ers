@@ -49,15 +49,15 @@ An automated quote processing system that:
 
 ```
 ┌─────────────────────────────────────────┐
-│         React Frontend (Vite)          │
-│         Port: 5173                     │
-│         - Quote upload & review UI     │
+│         React Frontend (Vite)           │
+│         Port: 5173                      │
+│         - Quote upload & review UI      │
 │         - Calls /api/parse & /api/insert│
 └──────────────┬──────────────────────────┘
                │ HTTP /api/* (proxied)
                │
 ┌──────────────▼──────────────────────────┐
-│     MCP Agent (FastAPI, erpnext_mcp)   │
+│     MCP Agent (FastAPI, erpnext_mcp)    │
 │     Port: 8001 (host) → 8000 (container)│
 │     - OCR + parsing (PDF, Excel, images)│
 │     - Gemini AI extraction (optional)   │
@@ -67,10 +67,10 @@ An automated quote processing system that:
                │ HTTP REST (Frappe API)
                │
 ┌──────────────▼──────────────────────────┐
-│       ERPNext Stack (frappe/erpnext)   │
-│       Port: 8080 (UI)                  │
-│       - Items, Quotations, Masters     │
-│       - Background jobs & scheduler    │
+│       ERPNext Stack (frappe/erpnext)    │
+│       Port: 8080 (UI)                   │
+│       - Items, Quotations, Masters      │
+│       - Background jobs & scheduler     │
 └─────────────────────────────────────────┘
 
 Supporting Services:
