@@ -28,3 +28,6 @@ server/uploads/*
 
 # Docker
 .docker/
+
+# UI Development Notes (not for public)
+UI_NOTES.md
