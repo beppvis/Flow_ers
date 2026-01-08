@@ -2,6 +2,7 @@ import pandas as pd
 from fpdf import FPDF
 import os
 
+
 def generate_excel():
     data = [
         {
@@ -25,11 +26,12 @@ def generate_excel():
     df.to_excel("sample_data/sample_products.xlsx", index=False)
     print("Created sample_data/sample_products.xlsx")
 
+
 def generate_pdf():
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    
+
     text = """
     INVOICE #12345
     
@@ -52,12 +54,13 @@ def generate_pdf():
        Description: 27 inch 4K display.
        Price: $350
     """
-    
+
     for line in text.split('\n'):
         pdf.cell(200, 10, txt=line, ln=1, align='L')
-        
+
     pdf.output("sample_data/sample_invoice.pdf")
     print("Created sample_data/sample_invoice.pdf")
+
 
 if __name__ == "__main__":
     if not os.path.exists("sample_data"):
