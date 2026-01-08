@@ -15,8 +15,19 @@ class ERPNextClient:
         if not self.url:
             raise ValueError("Missing FRAPPE_URL in .env")
 
-        # self.client = FrappeClient(self.url,self.api_key, self.api_secret)
+        # Initialize FrappeClient
         self.client = FrappeClient(self.url)
+        
+        # For multi-tenant Frappe, we need to set the Host header to the site name
+        # This tells ERPNext which site to serve
+        if not hasattr(self.client.session, 'headers'):
+            self.client.session.headers = {}
+        
+        # Set the Host header to the site name
+        # This is required for multi-tenant Frappe installations
+        self.client.session.headers['Host'] = 'frontend'
+        
+        # Now login with the site-aware session
         self.client.login("Administrator", "admin")
 
     def create_item(self, item_data):
@@ -41,7 +52,7 @@ class ERPNextClient:
             # Ensure Item Group exists
             if "item_group" in item_data and item_data["item_group"]:
                 self._ensure_item_group_exists(item_data["item_group"])
-            
+
             # Ensure UOM exists
             if "stock_uom" in item_data and item_data["stock_uom"]:
                 self._ensure_uom_exists(item_data["stock_uom"])
