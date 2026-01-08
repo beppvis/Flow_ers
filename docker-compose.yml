@@ -1,0 +1,34 @@
+version: '3.8'
+
+# Simplified docker-compose for single container setup
+services:
+  anokha:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: anokha
+    ports:
+      - "80:80"
+      - "3000:3000"
+      - "8000:8000"
+      - "9000:9000"
+    environment:
+      SITE_NAME: ${SITE_NAME:-erpnext.localhost}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      FRAPPE_VERSION: ${FRAPPE_VERSION:-v14.0.0}
+      ERPNEXT_VERSION: ${ERPNEXT_VERSION:-v14.0.0}
+    volumes:
+      # Optional: Mount volumes for data persistence
+      - anokha_frappe_data:/home/frappe/frappe-bench
+      - anokha_fleetbase_data:/app/fleetbase/storage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+volumes:
+  anokha_frappe_data:
+  anokha_fleetbase_data:
