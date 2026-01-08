@@ -1,0 +1,12 @@
+mcp
+google-genai
+pandas
+openpyxl
+pypdf
+pdf2image
+pytesseract
+requests
+python-dotenv
+fastapi
+uvicorn
+python-multipart
