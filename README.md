@@ -3,6 +3,8 @@
 **Domain:** LogiTech (Logistics & Supply Chain)  
 **Build2Break Hackathon Submission**
 
+
+
 ## Problem Statement
 
 Logistics coordinators and procurement teams spend 1+ hours daily manually re-typing quotes from freight forwarders and suppliers into Excel spreadsheets or ERP systems. Quotes arrive in various formats:
@@ -17,6 +19,10 @@ This manual process is:
 - **Error-prone:** Manual data entry leads to typos and missing information
 - **Inefficient:** Delays procurement decisions and quote comparisons
 - **Scalable bottleneck:** Cannot handle high quote volumes
+
+## Demo Video
+[![Watch my project demo on Vimeo](https://vimeo.com/1152623961?share=copy&fl=sv&fe=ci)
+
 
 ## Domain Relevance
 
