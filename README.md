@@ -21,19 +21,47 @@ All services are managed by **Supervisor** within the container.
 - At least 4GB RAM available
 - 10GB free disk space
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Remote Judge / One Command)
 
-### Option 1: Using the provided scripts (Recommended)
+From a fresh clone, a judge can run **one command**:
 
 ```bash
-# Build the Docker image
-./docker-build.sh
-
-# Run the container
-./docker-run.sh
+docker compose up --build
 ```
 
-### Option 2: Manual Docker commands
+Then open:
+- **ERPNext (official)**: `http://localhost:8080` (override with `ERPNEXT_HOST_PORT=8081`)
+  - Username: `Administrator`
+  - Password: `admin`
+- **Fleetbase API**: `http://localhost:3001/health` (override with `FLEETBASE_HOST_PORT=3000`)
+
+## Judge checklist
+
+- Run: `docker compose up --build`
+- Wait for ERPNext site creation to finish:
+
+```bash
+docker compose logs -f create-site
+```
+
+- While `create-site` is running, the ERPNext page may show `500`/`404` temporarily—**refresh after it finishes**.
+- If ERPNext is up, `http://localhost:8080` loads and you can login as `Administrator/admin`.
+
+### If you get “port is already allocated”
+
+If `8080` or `3001` is already in use on your laptop, you can override ports in a single command:
+
+```bash
+ERPNEXT_HOST_PORT=8081 FLEETBASE_HOST_PORT=3002 docker compose up --build
+```
+
+If you previously ran the older single-container template, remove it:
+
+```bash
+docker rm -f anokha 2>/dev/null || true
+```
+
+### Option 2: Manual Docker commands (2-step)
 
 ```bash
 # Build the image
@@ -42,7 +70,7 @@ docker build -t anokha:latest .
 # Run the container
 docker run -d \
   --name anokha \
-  -p 80:80 \
+  -p 8080:80 \
   -p 3000:3000 \
   -p 8000:8000 \
   -p 9000:9000 \
@@ -52,7 +80,7 @@ docker run -d \
 ### Option 3: Using Docker Compose (simplified)
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ## 🌐 Access Services

@@ -10,6 +10,17 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-dev \
+    python3-venv \
+    python3-setuptools \
+    build-essential \
+    cython3 \
+    libffi-dev \
+    libssl-dev \
+    libyaml-dev \
+    libmariadb-dev \
+    libpq-dev \
+    wkhtmltopdf \
+    ca-certificates \
     # Node.js dependencies
     curl \
     wget \
@@ -79,16 +90,23 @@ COPY nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Copy init script (one-shot initializer run by Supervisor)
+COPY init.sh /init.sh
+RUN chmod +x /init.sh
+
 # Create necessary directories
 RUN mkdir -p /var/log/supervisor \
     /var/run/mysqld \
     /var/run/postgresql \
+    /var/run \
     /var/lib/redis \
-    /home/frappe/frappe-bench \
     && chown -R frappe:frappe /home/frappe \
     && chown -R mysql:mysql /var/lib/mysql \
     && chown -R postgres:postgres /var/lib/postgresql \
     && chmod 755 /var/run/mysqld
+
+# Avoid starting container in /home/frappe (can break postgres initdb permissions/log message)
+WORKDIR /
 
 # Expose ports
 EXPOSE 80 3000 8000 9000 3306 5432 6379
