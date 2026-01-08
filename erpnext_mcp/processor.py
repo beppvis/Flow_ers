@@ -91,7 +91,19 @@ class FileProcessor:
 
         Step 1: Analyze the text to determine if it is a relevant business document.
         Step 2: Check for Accessorial Charges (GRI, BAF, Fuel Surcharge, Dock Fees, etc.).
-        Step 3: Extract Product Items and suggest HS Codes.
+        Step 3: Extract ONLY Product Items and suggest HS Codes.
+
+        CRITICAL EXCLUSIONS - DO NOT extract the following as items:
+        - Taxes (CGST, SGST, IGST, VAT, GST, Sales Tax, etc.)
+        - Discounts (Trade Discount, Cash Discount, etc.)
+        - Subtotals, Grand Totals, or any calculated totals
+        - Shipping/Freight charges (unless they are Accessorial Charges like GRI/BAF)
+        - Payment terms or banking details
+        - Any line that is purely a calculation or summary
+
+        ONLY extract:
+        - Physical products (goods being sold/purchased)
+        - Accessorial Charges (GRI, BAF, Fuel Surcharge, Dock Fees) - mark these with item_group='Accessorial Charges'
 
         Output must be a valid JSON object:
         {{
