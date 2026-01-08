@@ -1,0 +1,18 @@
+{
+  "name": "quote-processor",
+  "version": "1.0.0",
+  "description": "Automated quote processing system for logistics - Build2Break Hackathon",
+  "scripts": {
+    "dev": "concurrently \"npm run backend\" \"npm run client\"",
+    "backend": "cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 5000",
+    "client": "cd client && npm run dev",
+    "build": "cd client && npm run build"
+  },
+  "keywords": ["logistics", "quote", "automation", "erpnext"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+
