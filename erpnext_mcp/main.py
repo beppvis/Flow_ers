@@ -58,8 +58,7 @@ async def parse_files(quotes: List[UploadFile] = File(...)):
             # We might want to return errors in a way the frontend can display,
             # but for now let's just log it or include a placeholder error item if needed.
             print(f"Error processing {file.filename}: {e}")
-            raise HTTPException(status_code=500, detail=f"Error processing {
-                                file.filename}: {e}")
+            raise HTTPException(status_code=500, detail=f"Error processing {file.filename}: {e}")
 
     return {
         "success": True,
