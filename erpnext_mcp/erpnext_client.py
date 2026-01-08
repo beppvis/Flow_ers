@@ -1,55 +1,46 @@
-import requests
-import json
-from config import ERPNEXT_URL, ERPNEXT_API_KEY, ERPNEXT_API_SECRET
+import os
+from frappeclient import FrappeClient
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class ERPNextClient:
     def __init__(self):
-        self.base_url = ERPNEXT_URL.rstrip('/')
-        self.headers = {
-            "Authorization": f"token {ERPNEXT_API_KEY}:{ERPNEXT_API_SECRET}",
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
+        self.url = os.getenv("FRAPPE_URL")
+        self.api_key = os.getenv("FRAPPE_API_KEY")
+        self.api_secret = os.getenv("FRAPPE_API_SECRET")
+        
+        if not all([self.url, self.api_key, self.api_secret]):
+            raise ValueError("Missing ERPNext credentials in .env")
 
-    def get_item(self, item_code):
-        """
-        Check if an item exists in ERPNext.
-        """
-        url = f"{self.base_url}/api/resource/Item/{item_code}"
-        try:
-            response = requests.get(url, headers=self.headers)
-            if response.status_code == 200:
-                return response.json()['data']
-            elif response.status_code == 404:
-                return None
-            else:
-                response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            print(f"Error fetching item {item_code}: {e}")
-            return None
+        #self.client = FrappeClient(self.url,self.api_key, self.api_secret)
+        self.client = FrappeClient(self.url)
+        self.client.login("Administrator","admin")
 
     def create_item(self, item_data):
         """
-        Create a new item in ERPNext.
+        Creates an Item in ERPNext.
+        item_data: dict containing item details.
+                   Required fields usually: item_code, item_name, item_group, stock_uom
         """
-        url = f"{self.base_url}/api/resource/Item"
-        
-        # Ensure item_code is strings (ERPNext requirement)
-        if 'item_code' in item_data:
-            item_data['item_code'] = str(item_data['item_code'])
-        
-        # Default item_group if not present (required field often)
-        if 'item_group' not in item_data:
-             item_data['item_group'] = 'All Item Groups' 
-
         try:
-            response = requests.post(url, headers=self.headers, data=json.dumps(item_data))
-            response.raise_for_status()
-            return response.json()['data']
-        except requests.exceptions.HTTPError as e:
-            print(f"Error creating item: {e}")
-            print(f"Response content: {response.text}")
-            raise
+            # Check if item exists to avoid duplicates (optional, but good practice)
+            if "item_code" in item_data:
+                try:
+                    exists = self.client.get_doc("Item", item_data["item_code"])
+                    if exists:
+                        return {"status": "skipped", "message": f"Item {item_data['item_code']} already exists", "data": exists}
+                except Exception:
+                    # Not found or error, proceed to create
+                    pass
+
+            doc = self.client.insert(item_data)
+            return {"status": "success", "data": doc}
         except Exception as e:
-            print(f"Unexpected error creating item: {e}")
-            raise
+            return {"status": "error", "message": str(e)}
+
+    def get_item(self, item_code):
+        try:
+            return self.client.get_doc("Item", item_code)
+        except Exception as e:
+            return None

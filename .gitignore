@@ -49,3 +49,4 @@ temp/
 *.tmp
 
 frapper_docker
+erpnext_mcp/.env
