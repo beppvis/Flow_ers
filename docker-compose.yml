@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: quote-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:80
+      - ENV=production
+    volumes:
+      - ./backend/uploads:/app/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - quote-network
+
+  mcp-agent:
+    build:
+      context: ./mcp_agent
+      dockerfile: Dockerfile
+    container_name: quote-mcp-agent
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./backend/uploads:/app/uploads:ro
+      - ./mcp_agent:/app
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - quote-network
+    # Uncomment when MCP agent is ready
+    # ports:
+    #   - "8000:8000"
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: quote-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    networks:
+      - quote-network
+
+networks:
+  quote-network:
+    driver: bridge
+
