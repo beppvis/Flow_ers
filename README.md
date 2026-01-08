@@ -7,12 +7,12 @@
 
 ## Problem Statement
 
-Logistics coordinators and procurement teams spend 1+ hours daily manually re-typing quotes from freight forwarders and suppliers into Excel spreadsheets or ERP systems. Quotes arrive in various formats:
+Logistics coordinators and procurement teams spend 40% of their time daily manually re-typing quotes from freight forwarders and suppliers into Excel spreadsheets or ERP systems. Quotes arrive in various formats:
 - Scanned PDF documents
 - Images (JPG, PNG) from mobile cameras
 - Excel files with inconsistent formatting
 - Word documents
-- Text files or WhatsApp messages
+- Text files
 
 This manual process is:
 - **Time-consuming:** Over 40% of the day is consumed with doing repetitive tasks
@@ -41,7 +41,7 @@ An automated quote processing system that:
 1. Accepts quotes in multiple formats (PDF, images, Excel, Word, text)
 2. Extracts structured data using OCR, AI, and intelligent parsing
 3. Automatically pushes extracted data to ERPNext for quote management
-4. Provides a simple drag-and-drop interface for users
+4. Ease of adoption
 
 **Key Features:**
 - Multi-format support (PDF, images, Excel, Word, text)
@@ -111,7 +111,6 @@ Supporting Services:
 5. **ERPNext Integration:** Requires ERPNext to be running and accessible
 6. **Language Support:** Currently optimized for English text; other languages may have reduced accuracy
 7. **Processing Time:** Large files or complex quotes may take 30-60 seconds to process
-8. **Error Handling:** Some edge cases in quote formats may not be fully extracted
 
 ### Security Considerations
 
@@ -128,13 +127,14 @@ Supporting Services:
 - Docker and Docker Compose installed
 - At least 4GB RAM available
 - Ports 5173, 8001, 8080 available
+- Have a Gemini API key
 
 ### Quick Start (Local, via Docker Compose)
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
-   cd ANOKHA
+   git clone https://github.com/beppvis/Flow_ers
+   cd Flow_ers
    ```
 
 2. **Start all services:**
@@ -144,8 +144,7 @@ Supporting Services:
 
 3. **Access the application:**
    - **React Frontend (Quote Upload UI):** http://localhost:5173
-   - **MCP Agent API (FastAPI):** http://localhost:8001 (Swagger at /docs)
-   - **ERPNext UI:** http://localhost:8080
+   - **ERPNext UI:** http://localhost:8081
 
 ### Detailed Setup
 
@@ -207,7 +206,7 @@ curl http://localhost:8080
    - Success message displayed
 
 3. **View in ERPNext:**
-   - Open http://localhost:8000
+   - Open http://localhost:8081
    - Login with default credentials (if first run)
    - Navigate to Items or Quotes section
    - View processed quote data
@@ -242,16 +241,16 @@ docker-compose up erpnext-mcp-backend
 ## Project Structure
 
 ```
-ANOKHA/
+Flow_ers/
 ├── client/                 # React frontend (Vite) for quote upload & review
 │   ├── src/
-│   ├── Dockerfile          # Builds the frontend dev server (port 5173)
+│   ├── Dockerfile          # Builds the frontend dev server
 ├── erpnext_mcp/            # MCP Agent (FastAPI) for parsing & ERPNext sync
 │   ├── main.py
 │   ├── processor.py
 │   ├── erpnext_client.py
 │   ├── requirements.txt
-│   └── Dockerfile          # Builds the MCP backend (port 8000 in container)
+│   └── Dockerfile          # Builds the MCP backend
 ├── dataset/                # Sample PDFs, images, and Excel quotes (demo only)
 ├── docker-compose.yml      # Orchestrates ERPNext + MCP + Frontend
 └── README.md               # This file
@@ -274,36 +273,10 @@ All endpoints are exposed by the `erpnext_mcp` FastAPI service and are typically
 - `GET /docs`
   - **Description:** Swagger UI for interactive testing of the MCP API.
 
-### ERPNext UI (Port 8080)
+### ERPNext UI (Port 8081)
 
 - Web UI served by the `frappe/erpnext` image (proxied container `frontend` service).
 - Default site created as `frontend` with Administrator / admin (first run).
-
-## Evaluation Criteria Alignment
-
-### Solution Quality
-- Clear problem-solution fit
-- End-to-end automation
-- Multi-format support
-
-### Impact
-- 95% time reduction for coordinators
-- Error elimination in data entry
-- Scalable to high quote volumes
-
-### Reliability
-- Robust validation (client + server)
-- Error handling and fallbacks
-- Dockerized for reproducibility
-
-### Technical Alignment
-- Microservices architecture
-- Appropriate tech stack for each component
-- Clean separation of concerns
-
-## License
-
-This project is submitted for Build2Break Hackathon evaluation.
 
 ## Contact
 
