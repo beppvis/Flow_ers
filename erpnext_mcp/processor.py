@@ -89,21 +89,22 @@ class FileProcessor:
         prompt = f"""
         You are an intelligent data extraction assistant for an ERP system.
 
-        Step 1: Analyze the text to determine if it is a relevant business document (Invoice, Quote, Receipt, Purchase Order, or Product List/Catalog).
-        Step 2: If it is NOT relevant (e.g., a recipe, a poem, a legal contract, general news, or random text), return a JSON object indicating invalidity.
-        Step 3: If it IS relevant, extract a list of Product Items.
+        Step 1: Analyze the text to determine if it is a relevant business document.
+        Step 2: Check for Accessorial Charges (GRI, BAF, Fuel Surcharge, Dock Fees, etc.).
+        Step 3: Extract Product Items and suggest HS Codes.
 
-        Output must be a valid JSON object with the following structure:
+        Output must be a valid JSON object:
         {{
             "is_valid_document": boolean,
-            "validation_reason": "string (Why is it valid or invalid?)",
+            "validation_reason": "string",
             "items": [
                 {{
-                    "item_code": "Concise, uppercase, slug-like code (e.g. 'WLESS-MOUSE')",
-                    "item_name": "Product Name",
+                    "item_code": "Slug-like code (e.g. 'WLESS-MOUSE') or 'ACC-GRI' for charges",
+                    "item_name": "Product Name or Charge Name",
                     "description": "Full description",
-                    "item_group": "Inferred Category (e.g. Electronics, Packaging)",
-                    "stock_uom": "Unit (Nos, Kg, Box)",
+                    "item_group": "Inferred Category. IMPORTANT: Use 'Accessorial Charges' for fees/surcharges.",
+                    "stock_uom": "Unit (Nos, Kg, Box) or 'Service' for charges",
+                    "hs_code": "Suggested 6-digit HS Code (e.g. '8544.42') based on description",
                     "standard_rate": 0.0
                 }}
             ]

@@ -97,11 +97,12 @@ const QuoteUploader = () => {
         if (parsedItems.length === 0) return;
 
         // Headers
-        const headers = ["Item Code", "Name", "Group", "UOM", "Rate", "Description"];
+        const headers = ["Item Code", "Name", "Group", "HS Code", "UOM", "Rate", "Description"];
         const rows = parsedItems.map(item => [
             item.item_code,
             item.item_name,
             item.item_group,
+            item.hs_code || '',
             item.stock_uom,
             item.standard_rate,
             `"${(item.description || '').replace(/"/g, '""')}"` // Escape quotes
@@ -167,6 +168,7 @@ const QuoteUploader = () => {
                                     <th>Item Code</th>
                                     <th>Name</th>
                                     <th>Group</th>
+                                    <th>HS Code</th>
                                     <th>UOM</th>
                                     <th>Rate</th>
                                     <th>Status</th>
@@ -175,11 +177,17 @@ const QuoteUploader = () => {
                             <tbody>
                                 {parsedItems.map((item, idx) => {
                                     const syncStatus = syncResults ? syncResults.find(r => r.item_code === item.item_code) : null;
+                                    const isAccessorial = item.item_group === 'Accessorial Charges';
                                     return (
-                                        <tr key={idx} className={syncStatus ? syncStatus.status : ''}>
+                                        <tr key={idx} className={`${syncStatus ? syncStatus.status : ''} ${isAccessorial ? 'accessorial-row' : ''}`}>
                                             <td>{item.item_code}</td>
                                             <td>{item.item_name}</td>
-                                            <td>{item.item_group}</td>
+                                            <td>
+                                                <span className={`badge ${isAccessorial ? 'badge-warning' : 'badge-default'}`}>
+                                                    {item.item_group}
+                                                </span>
+                                            </td>
+                                            <td>{item.hs_code || '-'}</td>
                                             <td>{item.stock_uom}</td>
                                             <td>{item.standard_rate}</td>
                                             <td>
