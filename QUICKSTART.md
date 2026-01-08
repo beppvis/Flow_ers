@@ -1,48 +1,33 @@
-# 🚀 Quick Start Guide - Single Container
+# 🚀 Quick Start Guide (Remote Judge)
 
 ## One-Command Setup
 
 ```bash
-# Build and run
-./docker-build.sh && ./docker-run.sh
-
-# Or using Docker Compose
-docker-compose up -d
+docker compose up --build
 ```
 
 ## Access Your Services
 
-After starting, wait 2-3 minutes for initialization:
+After starting, wait for the `create-site` container to finish (this can take a few minutes):
 
-- **ERPNext**: http://localhost:8000
+- **ERPNext**: http://localhost:8080 (or set `ERPNEXT_HOST_PORT=8081`)
   - Username: `Administrator`
   - Password: `admin`
 
-- **Fleetbase API**: http://localhost:3000
-  - Health: http://localhost:3000/health
-
-- **Via Nginx**: http://localhost
+- **Fleetbase API**: http://localhost:3001 (or set `FLEETBASE_HOST_PORT=3000`)
+  - Health: http://localhost:3001/health
 
 ## Common Commands
 
 ```bash
-# View all logs
-docker logs -f anokha
+# Follow ERPNext site creation logs
+docker compose logs -f create-site
 
-# Check service status
-docker exec anokha supervisorctl status
+# View everything
+docker compose logs -f
 
-# Restart a service
-docker exec anokha supervisorctl restart fleetbase
-
-# Access container shell
-docker exec -it anokha bash
-
-# Stop container
-docker stop anokha
-
-# Start container
-docker start anokha
+# Stop
+docker compose down
 ```
 
 ## Troubleshooting
