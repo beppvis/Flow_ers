@@ -151,18 +151,16 @@ Supporting Services:
 
 #### 1. Environment Variables (Optional)
 
-Create a `.env` file in the root directory for optional configuration:
+Create a `.env` file in the root directory by copying the `.env.example` file which is already existing in the root folder:
 
 ```env
-# Gemini AI (optional - falls back to naive parsing if not set)
+# Fill in your own API key
 GEMINI_API_KEY=your_gemini_api_key
 
-# ERPNext Configuration (optional override)
-# By default docker-compose wires FRAPPE_URL=http://backend:8000 inside the network.
+# By default docker-compose wires FRAPPE_URL=http://backend:8001 inside the network.
 # Only set these if you are pointing to a different ERPNext instance.
-FRAPPE_URL=http://backend:8000
-FRAPPE_API_KEY=your_api_key
-FRAPPE_API_SECRET=your_api_secret
+FRAPPE_URL=http://backend:8001
+
 ```
 
 #### 2. Build and Run
