@@ -81,15 +81,17 @@ async def insert_items(items: List[dict]):
     for item in items:
         try:
             res = client.create_item(item)
+            # create_item returns {"status": "success"|"skipped"|"error", "data": ..., "message": ...}
+            status = res.get("status", "error")
             results.append({
                 "item_code": item.get("item_code"),
-                "status": "success" if res and res.get("name") else "failed",
-                "message": res.get("message", "Item created successfully") if res and res.get("name") else res.get("exception", "Unknown error during creation")
+                "status": "success" if status in ["success", "skipped"] else "error",
+                "message": res.get("message", "Item processed successfully" if status == "success" else "Item already exists" if status == "skipped" else "Unknown error")
             })
         except Exception as e:
             results.append({
                 "item_code": item.get("item_code"),
-                "status": "failed",
+                "status": "error",
                 "message": str(e)
             })
 
