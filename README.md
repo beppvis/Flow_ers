@@ -113,6 +113,7 @@ Supporting Services:
 5. **ERPNext Integration:** Requires ERPNext to be running and accessible
 6. **Language Support:** Currently optimized for English text; other languages may have reduced accuracy
 7. **Processing Time:** Large files or complex quotes may take 30-60 seconds to process
+8. If the Gemini AI API key is not available, or is invalid, we'll default to naive processing. Garbage value and undefined behaviour is expected.
 
 ### Security Considerations
 
