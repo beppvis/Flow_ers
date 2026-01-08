@@ -4,7 +4,17 @@ from erpnext_client import ERPNextClient
 import uvicorn
 import os
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(title="ERPNext MCP Server")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for dev simplicity
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 processor = FileProcessor()
 # Lazy initialization to allow starting even if env vars are missing (will fail on usage)
@@ -22,36 +32,61 @@ def get_erp_client():
     return erp_client
 
 
+from typing import List
+
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(quotes: List[UploadFile] = File(...)):
     """
-    Upload a PDF or Excel file.
-    The file is processed, and items are extracted and inserted into ERPNext.
+    Upload PDF or Excel files.
+    The client sends files with the key 'quotes'.
     """
+    processed_results = []
+    
     try:
-        content = await file.read()
-        items = processor.process_file(content, file.filename)
-
         client = get_erp_client()
-        results = []
-
-        if client:
-            for item in items:
-                # Basic validation before sending
-                if "item_code" in item:
-                    res = client.create_item(item)
-                    results.append(
-                        {"item": item.get("item_code"), "result": res})
+        
+        for file in quotes:
+            try:
+                content = await file.read()
+                items = processor.process_file(content, file.filename)
+                
+                # Check for client availability for each file or once globally
+                if client:
+                    for item in items:
+                        if "item_code" in item:
+                            res = client.create_item(item)
+                            processed_results.append({
+                                "filename": file.filename,
+                                "item": item.get("item_code"),
+                                "status": "success",
+                                "erp_response": res
+                            })
+                        else:
+                            processed_results.append({
+                                "filename": file.filename,
+                                "item": "unknown", 
+                                "status": "skipped"
+                            })
                 else:
-                    results.append(
-                        {"item": "unknown", "result": "skipped: no item_code"})
-        else:
-            results = [
-                {"message": "Processed but ERPNext client not configured", "data": items}]
+                    processed_results.append({
+                        "filename": file.filename,
+                        "status": "processed_locally_only", 
+                        "items_count": len(items)
+                    })
+            except Exception as e:
+                print(f"Error processing {file.filename}: {e}")
+                processed_results.append({"filename": file.filename, "error": str(e)})
 
-        return {"filename": file.filename, "extracted_count": len(items), "results": results}
+        # Return format expected by QuoteUploader.jsx: { success: true, message: "..." }
+        return {
+            "success": True, 
+            "message": f"Successfully processed {len(quotes)} files.",
+            "details": processed_results
+        }
 
     except Exception as e:
+        print(f"Upload error: {e}")
+        # Return 500 but try to keep structure if possible, though FastAPI exception handler takes over
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

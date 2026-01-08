@@ -44,3 +44,15 @@ class ERPNextClient:
             return self.client.get_doc("Item", item_code)
         except Exception as e:
             return None
+
+    def call_api(self, method: str, params: dict = None, http_method: str = "POST"):
+        """
+        Call a whitelisted Frappe API method.
+        """
+        try:
+            if http_method.upper() == "GET":
+                return self.client.get_api(method, params or {})
+            else:
+                return self.client.post_api(method, params or {})
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
