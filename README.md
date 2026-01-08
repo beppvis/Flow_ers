@@ -211,7 +211,7 @@ curl http://localhost:8080
 
 3. **View in ERPNext:**
    - Open http://localhost:8081
-   - Login with default credentials (if first run)
+   - Login with default credentials (if first run) [User: `Administrator` Pass: `admin` ]
    - Navigate to Items or Quotes section
    - View processed quote data
 
