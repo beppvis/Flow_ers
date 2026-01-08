@@ -1,65 +1,102 @@
-// Basic Fleetbase server template
-// Replace this with your actual Fleetbase server implementation
+// Mock Fleetbase server implementation
 
 const express = require('express');
-const { Pool } = require('pg');
+// const { Pool } = require('pg'); // Removed for mock
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Database connection
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'fleetbase',
-  user: process.env.DB_USER || 'fleetbase',
-  password: process.env.DB_PASSWORD || 'fleetbase',
-});
+// In-memory store for our mock
+const db = {
+    drivers: [],
+    orders: [],
+    assignments: []
+};
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/health', async (req, res) => {
-  try {
-    await pool.query('SELECT 1');
-    res.status(200).json({ status: 'ok', service: 'fleetbase' });
-  } catch (error) {
-    res.status(503).json({ status: 'error', message: error.message });
-  }
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', service: 'fleetbase-mock' });
 });
 
 // Root endpoint
 app.get('/', (req, res) => {
-  res.json({
-    message: 'Fleetbase API',
-    version: '1.0.0',
-    status: 'running'
-  });
+    res.json({
+        message: 'Fleetbase API Mock',
+        version: '1.0.0',
+        status: 'running',
+        counts: {
+            drivers: db.drivers.length,
+            orders: db.orders.length
+        }
+    });
 });
 
-// API routes placeholder
-app.get('/api/v1/status', (req, res) => {
-  res.json({ status: 'Fleetbase API is running' });
+// --- Drivers API ---
+app.post('/drivers', (req, res) => {
+    const driver = {
+        id: `dr_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+        name: req.body.name || 'Unknown Driver',
+        status: req.body.status || 'active',
+        created_at: new Date().toISOString()
+    };
+    db.drivers.push(driver);
+    console.log(`[Fleetbase] Created driver: ${driver.name} (${driver.id})`);
+    res.status(201).json(driver);
 });
 
-// Error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+app.get('/drivers', (req, res) => {
+    res.json(db.drivers);
+});
+
+// --- Orders API ---
+app.post('/orders', (req, res) => {
+    const order = {
+        id: `ord_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+        payload: req.body,
+        status: 'created',
+        created_at: new Date().toISOString()
+    };
+    db.orders.push(order);
+    console.log(`[Fleetbase] Created order: ${order.id}`);
+    res.status(201).json(order);
+});
+
+app.get('/orders', (req, res) => {
+    res.json(db.orders);
+});
+
+// --- Assignment/Dispatch API ---
+app.post('/orders/:id/dispatch', (req, res) => {
+    const { id } = req.params;
+    const { driver_id } = req.body;
+
+    const order = db.orders.find(o => o.id === id);
+    if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const driver = db.drivers.find(d => d.id === driver_id);
+    // Optional: Checking if driver exists, but let's be loose for mock
+
+    order.status = 'dispatched';
+    order.driver_id = driver_id;
+
+    console.log(`[Fleetbase] Dispatched order ${id} to driver ${driver_id}`);
+
+    res.json({
+        success: true,
+        order: order
+    });
 });
 
 // Start server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Fleetbase API server running on port ${port}`);
+app.listen(port, () => {
+    console.log(`Fleetbase Mock API server running on port ${port}`);
 });
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  await pool.end();
-  process.exit(0);
-});
 
