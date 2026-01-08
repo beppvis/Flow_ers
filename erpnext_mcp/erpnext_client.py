@@ -12,8 +12,8 @@ class ERPNextClient:
         self.api_key = os.getenv("FRAPPE_API_KEY")
         self.api_secret = os.getenv("FRAPPE_API_SECRET")
 
-        if not all([self.url, self.api_key, self.api_secret]):
-            raise ValueError("Missing ERPNext credentials in .env")
+        if not self.url:
+            raise ValueError("Missing FRAPPE_URL in .env")
 
         # self.client = FrappeClient(self.url,self.api_key, self.api_secret)
         self.client = FrappeClient(self.url)
