@@ -27,8 +27,19 @@ class FileProcessor:
             return self._process_pdf(file_content)
         elif filename.endswith('.xlsx') or filename.endswith('.xls'):
             return self._process_excel(file_content)
+        elif filename.lower().endswith(('.jpg', '.jpeg', '.png')):
+            return self._process_image(file_content)
         else:
             raise ValueError("Unsupported file type")
+
+    def _process_image(self, content: bytes) -> list:
+        try:
+            image = Image.open(io.BytesIO(content))
+            text = pytesseract.image_to_string(image)
+            return self._parse_text_to_items(text)
+        except Exception as e:
+            print(f"Error processing image: {e}")
+            raise ValueError(f"Error extracting text from image: {e}")
 
     def _process_pdf(self, content: bytes) -> list:
         text_content = ""
@@ -77,7 +88,7 @@ class FileProcessor:
 
         prompt = f"""
         You are an intelligent data extraction assistant for an ERP system.
-        
+
         Step 1: Analyze the text to determine if it is a relevant business document (Invoice, Quote, Receipt, Purchase Order, or Product List/Catalog).
         Step 2: If it is NOT relevant (e.g., a recipe, a poem, a legal contract, general news, or random text), return a JSON object indicating invalidity.
         Step 3: If it IS relevant, extract a list of Product Items.
@@ -99,7 +110,7 @@ class FileProcessor:
         }}
 
         Do NOT write markdown code blocks. Just return the raw JSON.
-        
+
         Text to process:
         \"\"\"
         {text[:10000]}
@@ -120,16 +131,17 @@ class FileProcessor:
                 raw_json = raw_json[3:-3]
 
             result = json.loads(raw_json)
-            
+
             # handle list or dict (legacy model might return list directly if prompt ignored)
             if isinstance(result, list):
                 # Fallback implementation if model ignored structure
                 return self._normalize_items(result)
-            
+
             if not result.get("is_valid_document", True):
-                reason = result.get("validation_reason", "Document does not appear to be a valid invoice or quote.")
+                reason = result.get(
+                    "validation_reason", "Document does not appear to be a valid invoice or quote.")
                 raise ValueError(f"Invalid Document: {reason}")
-            
+
             items = result.get("items", [])
             return self._normalize_items(items)
 
