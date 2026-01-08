@@ -61,6 +61,10 @@ services:
         wait-for-it db:3306 -t 120;
         wait-for-it redis-cache:6379 -t 120;
         wait-for-it redis-queue:6379 -t 120;
+        if [ -d sites/frontend ]; then
+          echo "Site frontend already exists";
+          exit 0;
+        fi;
         export start=`date +%s`;
         until [[ -n `grep -hs ^ sites/common_site_config.json | jq -r ".db_host // empty"` ]] && \
           [[ -n `grep -hs ^ sites/common_site_config.json | jq -r ".redis_cache // empty"` ]] && \
