@@ -21,7 +21,7 @@ This manual process is:
 - **Scalable bottleneck:** Cannot handle high quote volumes
 
 ## Demo Video
-[![Watch my project demo on Vimeo](https://vimeo.com/1152623961?share=copy&fl=sv&fe=ci)
+https://vimeo.com/1152623961?share=copy&fl=sv&fe=ci
 
 
 ## Domain Relevance
