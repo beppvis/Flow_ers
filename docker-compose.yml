@@ -217,9 +217,7 @@ services:
 
   # === MCP Agent Services ===
   erpnext-mcp-backend:
-    build:
-      context: ./erpnext_mcp
-      dockerfile: Dockerfile
+    image: zappvik/flowers-mcp:latest
     container_name: erpnext-mcp-backend
     networks:
       - frappe_network
@@ -236,9 +234,7 @@ services:
       - erpnext_mcp/.env
 
   erpnext-mcp-client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
+    image: zappvik/flowers-client:latest
     container_name: erpnext-mcp-client
     networks:
       - frappe_network
