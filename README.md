@@ -33,15 +33,17 @@ This solution addresses a critical operational efficiency challenge in the **Log
 - **Operational Efficiency:** Reduces manual work by 95%, freeing coordinators for strategic tasks
 - **Visibility:** Centralized quote data in ERPNext provides better supply chain visibility
 
-The solution directly aligns with LogiTech domain objectives of improving operational efficiency and supply chain coordination.
+The solution directly aligns with LogiTech domain objectives of improving operational efficiency and supply chain coordination, ensuring efficient adoption of "glue logic" to different ERP and Inventory Management System.
 
 ## Solution Overview
 
 An automated quote processing system that:
+
 1. Accepts quotes in multiple formats (PDF, images, Excel, Word, text)
 2. Extracts structured data using OCR, AI, and intelligent parsing
 3. Automatically pushes extracted data to ERPNext for quote management
-4. Ease of adoption
+4. Flexible Adoption across different ERP and Inventory Management system
+5. Easy to Use interface.
 
 **Key Features:**
 - Multi-format support (PDF, images, Excel, Word, text)
