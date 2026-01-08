@@ -157,9 +157,9 @@ Create a `.env` file in the root directory by copying the `.env.example` file wh
 # Fill in your own API key
 GEMINI_API_KEY=your_gemini_api_key
 
-# By default docker-compose wires FRAPPE_URL=http://backend:8001 inside the network.
+# By default docker-compose wires FRAPPE_URL=http://backend:8081 inside the network.
 # Only set these if you are pointing to a different ERPNext instance.
-FRAPPE_URL=http://backend:8001
+FRAPPE_URL=http://backend:8081
 
 ```
 
