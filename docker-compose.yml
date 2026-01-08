@@ -58,6 +58,50 @@ services:
     networks:
       - quote-network
 
+  erpnext:
+    image: frappe/erpnext:latest
+    container_name: quote-erpnext
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    environment:
+      - MARIADB_HOST=erpnext-db
+      - MARIADB_USER=root
+      - MARIADB_PASSWORD=erpnext
+      - MARIADB_DATABASE=erpnext
+      - ERPNEXT_SITE_NAME=quote-processor.localhost
+    volumes:
+      - erpnext-data:/home/frappe/frappe-bench
+    depends_on:
+      - erpnext-db
+      - erpnext-redis
+    restart: unless-stopped
+    networks:
+      - quote-network
+
+  erpnext-db:
+    image: mariadb:10.6
+    container_name: quote-erpnext-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=erpnext
+      - MYSQL_DATABASE=erpnext
+    volumes:
+      - erpnext-db-data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - quote-network
+
+  erpnext-redis:
+    image: redis:6.2-alpine
+    container_name: quote-erpnext-redis
+    restart: unless-stopped
+    networks:
+      - quote-network
+
+volumes:
+  erpnext-data:
+  erpnext-db-data:
+
 networks:
   quote-network:
     driver: bridge

@@ -31,3 +31,5 @@ server/uploads/*
 
 # UI Development Notes (not for public)
 UI_NOTES.md
+PRODUCT_VISION.md
+DEPLOYMENT.md
