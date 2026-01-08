@@ -5,13 +5,17 @@ import './QuoteUploader.css';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = [
     'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'image/jpg',
+    'text/plain',
     'application/vnd.ms-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 ];
 
-// const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.txt', '.xls', '.xlsx', '.doc', '.docx'];
+const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.txt', '.xls', '.xlsx', '.doc', '.docx'];
 
 const QuoteUploader = () => {
     const [files, setFiles] = useState([]);
