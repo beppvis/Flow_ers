@@ -1,4 +1,7 @@
-FROM python:3.11-slim
+FROM python:3.11
+
+# Set DNS fallback (fixes network issues in some Docker setups)
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 # Install system dependencies for PDF and OCR processing
 RUN apt-get update && apt-get install -y \

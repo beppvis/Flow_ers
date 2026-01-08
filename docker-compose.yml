@@ -232,6 +232,7 @@ services:
       - ./erpnext_mcp:/app
     restart: unless-stopped
     env_file:
+      - .env
       - erpnext_mcp/.env
 
   erpnext-mcp-client:
