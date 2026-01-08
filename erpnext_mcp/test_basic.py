@@ -14,7 +14,7 @@ def test_imports():
         import pdf2image
         import pytesseract
         import pypdf
-        import google.generativeai
+        from google import genai
         print("Imports successful.")
     except ImportError as e:
         print(f"Import failed: {e}")

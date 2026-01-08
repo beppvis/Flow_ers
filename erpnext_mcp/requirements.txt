@@ -9,4 +9,4 @@ pytesseract
 pypdf
 python-dotenv
 requests
-google-generativeai
+google-genai

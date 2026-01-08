@@ -6,7 +6,7 @@ from pypdf import PdfReader
 from pdf2image import convert_from_bytes
 import pytesseract
 from PIL import Image
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,11 +15,11 @@ class FileProcessor:
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
         if self.api_key:
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel('gemini-1.5-flash') # Use flash for speed/cost
+            self.client = genai.Client(api_key=self.api_key)
+            self.model_id = 'gemini-2.5-flash' 
         else:
             print("Warning: GEMINI_API_KEY not found. Fallback to naive parsing.")
-            self.model = None
+            self.client = None
 
     def process_file(self, file_content: bytes, filename: str) -> list:
         if filename.endswith('.pdf'):
@@ -71,7 +71,7 @@ class FileProcessor:
         """
         Uses Gemini to parse unstructured text into structured Item data.
         """
-        if not self.model:
+        if not self.client:
              return self._naive_parse(text)
 
         prompt = f"""
@@ -79,6 +79,8 @@ class FileProcessor:
         Extract a list of Product Items from the following text.
         
         The Output must be a valid JSON list of objects.
+        Do NOT write markdown code blocks. Just return the raw JSON.
+        
         Each object should attempt to have these fields:
         - "item_code": A unique code if present, otherwise generate a sensible one based on name.
         - "item_name": The name of the product.
@@ -94,12 +96,14 @@ class FileProcessor:
         {text[:10000]} 
         \"\"\"
         """ 
-        # Truncate text to avoid token limits if extremely large, though flash handles ~1M tokens. 
-        # 10k chars is safe for simple files.
 
         try:
-            response = self.model.generate_content(prompt)
-            # Cleanup Markdown code blocks if present
+            response = self.client.models.generate_content(
+                model=self.model_id,
+                contents=prompt
+            )
+            
+            # Cleanup if markdown blocks persist despite instructions
             raw_json = response.text.strip()
             if raw_json.startswith("```json"):
                 raw_json = raw_json[7:-3]
