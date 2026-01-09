@@ -1,4 +1,4 @@
-FROM python:3.11                       
+FROM python:3.15-rc-slim-trixie                       
 
 # Install system dependencies for PDF and OCR processing
 RUN apt-get update && apt-get install -y \
