@@ -3,6 +3,8 @@
 **Domain:** LogiTech (Logistics & Supply Chain)  
 **Build2Break Hackathon Submission**
 
+<img width="2749" height="1531" alt="image" src="https://github.com/user-attachments/assets/af5c8fb8-ec81-4fe4-8d1f-25fdf27720ca" />
+<img width="2749" height="1531" alt="image" src="https://github.com/user-attachments/assets/f406b285-5cec-4516-9eb7-83d5e0a446e9" />
 
 
 ## Problem Statement
@@ -93,8 +95,6 @@ Supporting Services:
 - **ERPNext:** Frappe framework, MariaDB, Redis
 - **Infrastructure:** Docker Compose
 
-<img width="2749" height="1531" alt="image" src="https://github.com/user-attachments/assets/af5c8fb8-ec81-4fe4-8d1f-25fdf27720ca" />
-<img width="2749" height="1531" alt="image" src="https://github.com/user-attachments/assets/f406b285-5cec-4516-9eb7-83d5e0a446e9" />
 
 
 
